@@ -1,26 +1,42 @@
-import type { PrismaClient } from '@prisma/client';
+import { Permission, Role, type PermissionDocument, type RoleDocument } from '../../database/models.js';
 
 export class RbacRepository {
-  constructor(private readonly db: PrismaClient) {}
+  async listRoles() {
+    const roles = await Role.find().sort({ name: 1 }).populate('permissionIds');
 
-  listRoles() {
-    return this.db.role.findMany({
-      orderBy: { name: 'asc' },
-      include: {
-        rolePermissions: {
-          include: { permission: true }
-        }
-      }
-    });
+    return roles.map((role) => this.serializeRole(role as unknown as RoleDocument & { permissionIds: PermissionDocument[] }));
   }
 
-  listPermissions() {
-    return this.db.permission.findMany({
-      orderBy: [{ module: 'asc' }, { action: 'asc' }]
-    });
+  async listPermissions() {
+    const permissions = await Permission.find().sort({ module: 1, action: 1 });
+
+    return permissions.map(this.serializePermission);
   }
 
-  createRole(data: { name: string; slug: string; description?: string }) {
-    return this.db.role.create({ data });
+  async createRole(data: { name: string; slug: string; description?: string }) {
+    const role = await Role.create(data);
+
+    return this.serializeRole(role as unknown as RoleDocument & { permissionIds: PermissionDocument[] });
+  }
+
+  private serializeRole(role: RoleDocument & { permissionIds: PermissionDocument[] }) {
+    return {
+      id: role._id.toString(),
+      name: role.name,
+      slug: role.slug,
+      description: role.description,
+      isSystem: role.isSystem,
+      permissions: (role.permissionIds ?? []).map(this.serializePermission)
+    };
+  }
+
+  private serializePermission(permission: PermissionDocument) {
+    return {
+      id: permission._id.toString(),
+      module: permission.module,
+      action: permission.action,
+      slug: permission.slug,
+      description: permission.description
+    };
   }
 }

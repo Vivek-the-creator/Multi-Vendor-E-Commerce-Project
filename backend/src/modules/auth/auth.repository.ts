@@ -1,30 +1,14 @@
-import type { PrismaClient } from '@prisma/client';
+import { Role, User } from '../../database/models.js';
 
 export class AuthRepository {
-  constructor(private readonly db: PrismaClient) {}
-
   findUserByEmail(email: string) {
-    return this.db.user.findUnique({
-      where: { email },
-      include: {
-        userRoles: {
-          include: {
-            role: {
-              include: {
-                rolePermissions: {
-                  include: {
-                    permission: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+    return User.findOne({ email }).populate({
+      path: 'roleIds',
+      populate: { path: 'permissionIds' }
     });
   }
 
   findRoleBySlug(slug: string) {
-    return this.db.role.findUnique({ where: { slug } });
+    return Role.findOne({ slug });
   }
 }

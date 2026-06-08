@@ -19,9 +19,7 @@
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "format": "prettier --write .",
-    "prisma:generate": "npm --workspace @marketplace/backend run prisma:generate",
-    "prisma:migrate": "npm --workspace @marketplace/backend run prisma:migrate",
-    "prisma:seed": "npm --workspace @marketplace/backend run prisma:seed"
+    "db:seed": "npm --workspace @marketplace/backend run db:seed"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

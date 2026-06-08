@@ -2,15 +2,18 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import type { SignOptions } from 'jsonwebtoken';
 import { env } from '../../config/env.js';
-import { prisma } from '../../database/prisma.js';
+import { User, type PermissionDocument, type RoleDocument } from '../../database/models.js';
 import { AppError } from '../../shared/errors/app-error.js';
 import { AuthRepository } from './auth.repository.js';
 import type { LoginInput, RegisterInput } from './auth.validators.js';
 
-const authRepository = new AuthRepository(prisma);
+const authRepository = new AuthRepository();
 const accessTokenOptions: SignOptions = {
   expiresIn: env.ACCESS_TOKEN_TTL as NonNullable<SignOptions['expiresIn']>
 };
+
+type PopulatedRole = RoleDocument & { permissionIds: PermissionDocument[] };
+type CreatedUser = { createdAt: Date };
 
 export class AuthService {
   async register(input: RegisterInput) {
@@ -26,27 +29,20 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(input.password, 12);
 
-    const user = await prisma.user.create({
-      data: {
-        name: input.name,
-        email: input.email,
-        passwordHash,
-        userRoles: {
-          create: {
-            roleId: role.id
-          }
-        }
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        status: true,
-        createdAt: true
-      }
+    const user = await User.create({
+      name: input.name,
+      email: input.email,
+      passwordHash,
+      roleIds: [role._id]
     });
 
-    return user;
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      status: user.status,
+      createdAt: (user as unknown as CreatedUser).createdAt
+    };
   }
 
   async login(input: LoginInput) {
@@ -60,13 +56,14 @@ export class AuthService {
       throw new AppError(401, 'INVALID_CREDENTIALS', 'Invalid email or password.');
     }
 
-    const roles = user.userRoles.map((userRole) => userRole.role.slug);
-    const permissions = user.userRoles.flatMap((userRole) =>
-      userRole.role.rolePermissions.map((rolePermission) => rolePermission.permission.slug)
+    const populatedRoles = user.roleIds as unknown as PopulatedRole[];
+    const roles = populatedRoles.map((role) => role.slug);
+    const permissions = populatedRoles.flatMap((role) =>
+      (role.permissionIds as PermissionDocument[]).map((permission) => permission.slug)
     );
 
     const payload = {
-      id: user.id,
+      id: user._id.toString(),
       email: user.email,
       roles,
       permissions: Array.from(new Set(permissions))
@@ -80,7 +77,7 @@ export class AuthService {
 
     return {
       user: {
-        id: user.id,
+        id: user._id.toString(),
         name: user.name,
         email: user.email,
         roles,

@@ -44,7 +44,7 @@ Build a production-ready, database-driven multi-vendor e-commerce marketplace si
 - Node.js
 - Express.js
 - TypeScript strict mode
-- Prisma ORM
+- Mongoose ODM
 - PostgreSQL
 - JWT access tokens
 - Refresh token rotation
@@ -85,7 +85,7 @@ flowchart LR
   API --> CMS["CMS / Homepage Module"]
   API --> Reports["Reporting Module"]
   API --> Notify["Notification Module"]
-  Auth --> DB["PostgreSQL via Prisma"]
+  Auth --> DB["MongoDB Atlas via Mongoose"]
   Catalog --> DB
   Commerce --> DB
   AdminSvc --> DB
@@ -105,7 +105,7 @@ Every backend feature should follow this internal shape:
 - `controllers`: request parsing, response shaping, orchestration boundary
 - `validators`: Zod/Joi DTO validation
 - `services`: business rules and transactions
-- `repositories`: Prisma data access
+- `repositories`: Mongoose data access
 - `dto`: request/response contracts
 - `policies`: authorization and ownership checks
 - `utils`: reusable helpers
@@ -552,8 +552,9 @@ multi-vendor-ecommerce/
           types/
         app.ts
         server.ts
-      prisma/
-        schema.prisma
+      database/
+        models.ts
+        mongoose.ts
         seed/
       tests/
     web/
@@ -587,7 +588,7 @@ multi-vendor-ecommerce/
         constants/
         utils/
   docs/
-  docker/
+  scripts/
   .github/
     workflows/
 ```
@@ -602,7 +603,7 @@ multi-vendor-ecommerce/
 - Use HTTP-only, secure, same-site cookies.
 - Validate every request body, query, and params object.
 - Enforce RBAC and resource ownership policies.
-- Use Prisma parameterized queries to prevent SQL injection.
+- Use Mongoose schema validation and typed query builders for data access.
 - Sanitize rich CMS input and render safely.
 - Add CSRF protection for cookie-authenticated state-changing requests.
 - Maintain audit logs for admin and vendor-sensitive actions.
@@ -678,7 +679,7 @@ multi-vendor-ecommerce/
 
 ### Phase 1: Database and RBAC Foundation
 
-- Create Prisma schema for identity, RBAC, users, sessions, audit logs, settings.
+- Create Mongoose schemas for identity, RBAC, users, sessions, audit logs, settings.
 - Add migrations.
 - Add seed data for default roles, permissions, order statuses, global settings.
 - Implement permission middleware.
@@ -786,7 +787,7 @@ multi-vendor-ecommerce/
 
 Implementation should proceed in vertical slices after the foundation is complete. Each slice must include:
 
-- Prisma models and migrations
+- Mongoose models and seed scripts
 - Backend routes/controllers/services/repositories
 - DTO validation
 - Authorization

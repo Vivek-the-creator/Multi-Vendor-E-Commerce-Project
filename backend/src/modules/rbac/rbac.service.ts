@@ -1,7 +1,6 @@
-import { prisma } from '../../database/prisma.js';
 import { RbacRepository } from './rbac.repository.js';
 
-const rbacRepository = new RbacRepository(prisma);
+const rbacRepository = new RbacRepository();
 
 export class RbacService {
   listRoles() {

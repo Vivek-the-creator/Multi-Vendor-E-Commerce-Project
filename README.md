@@ -10,9 +10,9 @@ Phase 0 foundation is scaffolded:
 - Express TypeScript API shell
 - Next.js TypeScript web shell
 - Shared contracts package
-- Prisma schema for identity, RBAC, catalog, commerce, CMS, and business configuration
+- MongoDB Atlas data layer with Mongoose models for identity, RBAC, and seed configuration
 - Seed script for default roles, permissions, order statuses, global commission, and admin user
-- Docker Compose for PostgreSQL and Redis
+- No Docker requirement; the API connects directly to MongoDB Atlas
 - OpenAPI documentation mount at `/docs`
 
 ## Local Setup
@@ -27,22 +27,21 @@ npm.cmd install
 
 ```powershell
 Copy-Item .env.example .env
-Copy-Item apps/api/.env.example apps/api/.env
-Copy-Item apps/web/.env.example apps/web/.env.local
+Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env.local
 ```
 
-3. Start infrastructure:
+3. Put your MongoDB Atlas connection string in `.env` and `backend/.env`:
 
 ```powershell
-docker compose up -d
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/marketplace?retryWrites=true&w=majority
+MONGODB_DB_NAME=marketplace
 ```
 
-4. Generate Prisma client and migrate:
+4. Seed the Atlas database:
 
 ```powershell
-npm.cmd run prisma:generate
-npm.cmd run prisma:migrate
-npm.cmd run prisma:seed
+npm.cmd run db:seed
 ```
 
 5. Start development servers:
@@ -62,4 +61,4 @@ Change this immediately after first login in any real environment.
 
 The backend is organized by clean architecture boundaries: routes, controllers, validators, services, repositories, middleware, config, database, and shared utilities. The frontend uses Next.js App Router with route areas for storefront, admin, vendor, and account experiences.
 
-All configurable business concepts should be stored in PostgreSQL and exposed through admin workflows. Default seed data is allowed only as editable initial configuration.
+All configurable business concepts should be stored in MongoDB Atlas and exposed through admin workflows. Default seed data is allowed only as editable initial configuration.
