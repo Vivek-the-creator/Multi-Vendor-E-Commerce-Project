@@ -19,7 +19,7 @@ A modern college event management platform built with Next.js, TypeScript, Prism
 - Tailwind CSS
 - Prisma ORM
 - PostgreSQL
-- bcryptjs for password hashing
+- bcryptjs for password
 
 ## Prerequisites
 
