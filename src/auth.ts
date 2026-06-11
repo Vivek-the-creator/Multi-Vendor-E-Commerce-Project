@@ -15,7 +15,12 @@ export interface Session {
 
 const SESSION_COOKIE = 'campus_session';
 
-export async function signIn(credentials: { email: string; password: string }) {
+export interface VerificationNeeded {
+  needsVerification: true;
+  email: string;
+}
+
+export async function signIn(credentials: { email: string; password: string }): Promise<Session | VerificationNeeded | null> {
   const user = await findUserByEmail(credentials.email);
   if (!user) {
     return null;
@@ -24,6 +29,10 @@ export async function signIn(credentials: { email: string; password: string }) {
   const valid = await compare(credentials.password, user.passwordHash || '');
   if (!valid) {
     return null;
+  }
+
+  if (!user.emailVerified) {
+    return { needsVerification: true, email: user.email };
   }
 
   const session = {

@@ -6,6 +6,10 @@ export interface UserRecord {
   email: string;
   role: Role;
   passwordHash: string;
+  department?: string;
+  employeeId?: string;
+  emailVerified?: boolean;
+  verificationToken?: string | null;
 }
 
 export interface Proposal {

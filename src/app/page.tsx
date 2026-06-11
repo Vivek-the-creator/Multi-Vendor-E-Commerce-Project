@@ -23,19 +23,19 @@ export default async function HomePage() {
               Students propose events, faculty review ideas, and admins coordinate approvals, funding, and bookings in a single platform.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+<div className="flex flex-wrap gap-3">
             {session ? (
               <Link href="/dashboard">
                 <Button variant="secondary">Open dashboard</Button>
               </Link>
             ) : (
               <>
-                <Link href="/register">
-                  <Button variant="secondary">Create account</Button>
+                <Link href="/auth">
+                  <Button variant="secondary">Sign in</Button>
                 </Link>
-                <Link href="/login">
+                <Link href="/auth">
                   <Button variant="outline" className="border-white/40 bg-transparent text-white hover:bg-white/10">
-                    Sign in
+                    Create account
                   </Button>
                 </Link>
               </>

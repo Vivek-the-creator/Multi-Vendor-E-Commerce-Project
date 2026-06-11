@@ -7,6 +7,8 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   role: z.enum(['STUDENT', 'FACULTY', 'ADMIN']).optional(),
+  department: z.string().optional(),
+  employeeId: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -18,6 +20,8 @@ export async function POST(request: Request) {
       email: parsed.email,
       password: parsed.password,
       role: parsed.role ?? 'STUDENT',
+      department: parsed.department,
+      employeeId: parsed.employeeId,
     });
 
     if (!user) {

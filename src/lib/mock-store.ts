@@ -8,6 +8,8 @@ const users: UserRecord[] = [
     email: 'admin@campusconnect.edu',
     role: 'ADMIN',
     passwordHash: '',
+    emailVerified: true,
+    verificationToken: null,
   },
   {
     id: 'u-faculty',
@@ -15,6 +17,8 @@ const users: UserRecord[] = [
     email: 'faculty@campusconnect.edu',
     role: 'FACULTY',
     passwordHash: '',
+    emailVerified: true,
+    verificationToken: null,
   },
   {
     id: 'u-student',
@@ -22,6 +26,8 @@ const users: UserRecord[] = [
     email: 'student@campusconnect.edu',
     role: 'STUDENT',
     passwordHash: '',
+    emailVerified: true,
+    verificationToken: null,
   },
 ];
 
@@ -104,7 +110,7 @@ export async function findUserByEmail(email: string) {
   return users.find((user) => user.email.toLowerCase() === email.toLowerCase());
 }
 
-export async function createUser({ name, email, password, role }: { name: string; email: string; password: string; role: Role }) {
+export async function createUser({ name, email, password, role, department, employeeId }: { name: string; email: string; password: string; role: Role; department?: string; employeeId?: string }) {
   await seedUsers();
   const existing = users.find((user) => user.email.toLowerCase() === email.toLowerCase());
   if (existing) {
@@ -112,14 +118,29 @@ export async function createUser({ name, email, password, role }: { name: string
   }
 
   const passwordHash = await hash(password, 10);
+  const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   const user: UserRecord = {
     id: `u-${users.length + 1}`,
     name,
     email,
     role,
     passwordHash,
+    department,
+    employeeId,
+    emailVerified: false,
+    verificationToken,
   };
   users.push(user);
+  return user;
+}
+
+export async function verifyUser(token: string) {
+  const user = users.find((u) => u.verificationToken === token);
+  if (!user) {
+    return null;
+  }
+  user.emailVerified = true;
+  user.verificationToken = null;
   return user;
 }
 
