@@ -1,6 +1,0 @@
-import { Shell } from '@/components/layout/shell';
-import { AuthShell, RoleCards } from '@/components/marketplace/auth-panels';
-
-export default function SignupPage() {
-  return <Shell><AuthShell mode="signup"><form className="grid gap-4"><RoleCards /><div className="grid gap-3 md:grid-cols-2"><input className="h-11 rounded-md border border-border bg-background px-3" placeholder="Name / Owner Name" /><input className="h-11 rounded-md border border-border bg-background px-3" placeholder="Store Name" /><input className="h-11 rounded-md border border-border bg-background px-3" placeholder="Email" /><input className="h-11 rounded-md border border-border bg-background px-3" placeholder="Phone" /><input className="h-11 rounded-md border border-border bg-background px-3" placeholder="GST Number" /><input className="h-11 rounded-md border border-border bg-background px-3" placeholder="Address" /><input className="h-11 rounded-md border border-border bg-background px-3" placeholder="Password" type="password" /><input className="h-11 rounded-md border border-border bg-background px-3" placeholder="Confirm Password" type="password" /></div><button className="rounded-md bg-primary px-5 py-3 font-semibold text-white">Create Account</button></form></AuthShell></Shell>;
-}
