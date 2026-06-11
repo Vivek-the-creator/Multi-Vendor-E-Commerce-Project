@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String                    @id @default(cuid())
+  name               String
+  email              String                    @unique
+  passwordHash       String
+  role               Role                      @default(STUDENT)
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  proposals          EventProposal[]
+  votes              Vote[]
+  comments           Comment[]
+  resourcePledges    ResourcePledge[]
+  fundingContributions FundingContribution[]
+  bookings           Booking[]
+  pointTransactions  CampusPointTransaction[]
+  notifications      Notification[]
+  @@index([email])
+}
+
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
+}
+
+model EventProposal {
+  id               String               @id @default(cuid())
+  title            String
+  description      String
+  category         String
+  expectedAudience Int
+  budget           Float
+  startDate        DateTime
+  endDate          DateTime
+  venue            String
+  coverImage       String?
+  attachments      String[]
+  status           ProposalStatus       @default(DRAFT)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  authorId         String
+  author           User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes            Vote[]
+  comments         Comment[]
+  resourcePledges  ResourcePledge[]
+  fundingContributions FundingContribution[]
+  tickets          Ticket[]
+  bookings         Booking[]
+  notifications    Notification[]
+  @@index([status])
+  @@index([category])
+}
+
+enum ProposalStatus {
+  DRAFT
+  SUBMITTED
+  FACULTY_REVIEW
+  APPROVED
+  PUBLISHED
+  COMPLETED
+}
+
+model Vote {
+  id           String         @id @default(cuid())
+  proposalId   String
+  proposal     EventProposal  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+  @@unique([proposalId, userId])
+  @@index([proposalId])
+}
+
+model Comment {
+  id           String         @id @default(cuid())
+  content      String
+  proposalId   String
+  proposal     EventProposal  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId     String?
+  parent       Comment?       @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      Comment[]      @relation("CommentReplies")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  @@index([proposalId])
+}
+
+model FundingContribution {
+  id           String         @id @default(cuid())
+  amount       Float
+  contributionDate DateTime    @default(now())
+  proposalId   String
+  proposal     EventProposal  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  contributorId String
+  contributor  User           @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  @@index([proposalId])
+}
+
+model ResourcePledge {
+  id            String        @id @default(cuid())
+  resourceType  String
+  description   String
+  quantity      Int
+  availability  String
+  proposalId    String
+  proposal      EventProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  pledgerId     String
+  pledger       User          @relation(fields: [pledgerId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  @@index([proposalId])
+}
+
+model Ticket {
+  id            String        @id @default(cuid())
+  name          String
+  price         Float
+  capacity      Int
+  bookingWindow String
+  proposalId    String
+  proposal      EventProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  bookings      Booking[]
+  createdAt     DateTime      @default(now())
+  @@index([proposalId])
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  ticketId      String
+  ticket        Ticket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  proposalId    String
+  proposal      EventProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status        BookingStatus @default(CONFIRMED)
+  bookingDate   DateTime      @default(now())
+  ticketCode    String        @unique
+  @@index([userId])
+  @@index([proposalId])
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model CampusPointTransaction {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  points        Int
+  reason        String
+  createdAt     DateTime      @default(now())
+  @@index([userId])
+}
+
+model Notification {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message       String
+  isRead        Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  proposalId    String?
+  proposal      EventProposal? @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
