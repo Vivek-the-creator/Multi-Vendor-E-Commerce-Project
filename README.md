@@ -79,4 +79,4 @@ A modern college event management platform built with Next.js, TypeScript, Prism
 
 - This project uses Prisma with PostgreSQL, so make sure your database is running before starting the app.
 - Keep sensitive values such as database credentials and secrets out of source control.
-- Started to work as a team using git branches
+- Started to work as a team using git branch
