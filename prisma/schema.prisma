@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -12,7 +12,7 @@ model User {
   name               String
   email              String                    @unique
   passwordHash       String
-  role               Role                      @default(STUDENT)
+  role               String                    @default("STUDENT")
   emailVerified      Boolean                   @default(false)
   verificationToken  String?
   department         String?
@@ -25,15 +25,10 @@ model User {
   resourcePledges    ResourcePledge[]
   fundingContributions FundingContribution[]
   bookings           Booking[]
-  pointTransactions  CampusPointTransaction[]
-  notifications      Notification[]
+  pointTransactions     CampusPointTransaction[]
+  notifications         Notification[]
+  volunteerApplications VolunteerApplication[] @relation("VolunteerStudent")
   @@index([email])
-}
-
-enum Role {
-  STUDENT
-  FACULTY
-  ADMIN
 }
 
 model EventProposal {
@@ -47,8 +42,8 @@ model EventProposal {
   endDate          DateTime
   venue            String
   coverImage       String?
-  attachments      String[]
-  status           ProposalStatus       @default(DRAFT)
+  attachments      String?
+  status           String               @default("DRAFT")
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
   authorId         String
@@ -57,20 +52,12 @@ model EventProposal {
   comments         Comment[]
   resourcePledges  ResourcePledge[]
   fundingContributions FundingContribution[]
-  tickets          Ticket[]
-  bookings         Booking[]
-  notifications    Notification[]
+  tickets                Ticket[]
+  bookings               Booking[]
+  notifications          Notification[]
+  volunteerApplications  VolunteerApplication[]
   @@index([status])
   @@index([category])
-}
-
-enum ProposalStatus {
-  DRAFT
-  SUBMITTED
-  FACULTY_REVIEW
-  APPROVED
-  PUBLISHED
-  COMPLETED
 }
 
 model Vote {
@@ -145,16 +132,11 @@ model Booking {
   proposal      EventProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   userId        String
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status        BookingStatus @default(CONFIRMED)
+  status        String        @default("CONFIRMED")
   bookingDate   DateTime      @default(now())
   ticketCode    String        @unique
   @@index([userId])
   @@index([proposalId])
-}
-
-enum BookingStatus {
-  CONFIRMED
-  CANCELLED
 }
 
 model CampusPointTransaction {
@@ -171,10 +153,27 @@ model Notification {
   id            String        @id @default(cuid())
   userId        String
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String        @default("")
   message       String
   isRead        Boolean       @default(false)
   createdAt     DateTime      @default(now())
   proposalId    String?
   proposal      EventProposal? @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   @@index([userId])
+}
+
+model VolunteerApplication {
+  id          String        @id @default(cuid())
+  eventId     String
+  event       EventProposal @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User          @relation("VolunteerStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  skill       String
+  reason      String
+  status      String        @default("PENDING")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  @@unique([eventId, studentId])
+  @@index([eventId])
+  @@index([studentId])
 }

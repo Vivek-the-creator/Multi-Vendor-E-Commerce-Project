@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, FileText, Calendar, BarChart3, LogOut, Sun, Moon,
   Zap, ChevronRight, Bell, Settings, Users, Shield, GraduationCap, BookOpen,
+  ThumbsUp, Star,
 } from 'lucide-react';
 import { useSession, signOut } from '@/lib/auth-client';
 import { useTheme } from '@/components/providers';
@@ -16,18 +17,21 @@ const navByRole = {
     { href: '/proposals', label: 'Proposals', icon: FileText },
     { href: '/calendar', label: 'Calendar', icon: Calendar },
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/engagement/analytics/student', label: 'My Stats', icon: Star },
   ],
   FACULTY: [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/proposals', label: 'Proposals', icon: FileText },
     { href: '/calendar', label: 'Calendar', icon: Calendar },
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/engagement/analytics/faculty', label: 'My Stats', icon: Star },
   ],
   ADMIN: [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/proposals', label: 'Proposals', icon: FileText },
     { href: '/calendar', label: 'Calendar', icon: Calendar },
     { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/engagement/analytics/admin', label: 'Engagement', icon: ThumbsUp },
     { href: '/admin/users', label: 'Users', icon: Users },
   ],
 };
