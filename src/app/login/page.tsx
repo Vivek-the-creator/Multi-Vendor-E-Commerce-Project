@@ -2,316 +2,306 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, Users, Shield, Eye, EyeOff, Loader2, Zap, BookOpen, Calendar } from 'lucide-react';
+import {
+  GraduationCap, Shield, Eye, EyeOff, Loader2, Zap,
+  BookOpen, Calendar, Users, ArrowRight, Star, CheckCircle2, TrendingUp,
+} from 'lucide-react';
 
 type Role = 'STUDENT' | 'FACULTY' | 'ADMIN';
 
-const roles: {
-  value: Role;
-  label: string;
-  icon: React.ReactNode;
-  description: string;
-  gradient: string;
-  activeGradient: string;
-  activeBorder: string;
-  activeText: string;
-}[] = [
-  {
-    value: 'STUDENT',
-    label: 'Student',
-    icon: <GraduationCap className="h-5 w-5" />,
-    description: 'Propose & vote on events',
-    gradient: 'from-blue-500 to-cyan-500',
-    activeGradient: 'from-blue-500/10 to-cyan-500/10',
-    activeBorder: 'border-blue-500',
-    activeText: 'text-blue-600 dark:text-blue-400',
-  },
-  {
-    value: 'FACULTY',
-    label: 'Faculty',
-    icon: <BookOpen className="h-5 w-5" />,
-    description: 'Review & approve ideas',
-    gradient: 'from-emerald-500 to-teal-500',
-    activeGradient: 'from-emerald-500/10 to-teal-500/10',
-    activeBorder: 'border-emerald-500',
-    activeText: 'text-emerald-600 dark:text-emerald-400',
-  },
-  {
-    value: 'ADMIN',
-    label: 'Admin',
-    icon: <Shield className="h-5 w-5" />,
-    description: 'Manage all operations',
-    gradient: 'from-violet-500 to-indigo-500',
-    activeGradient: 'from-violet-500/10 to-indigo-500/10',
-    activeBorder: 'border-violet-500',
-    activeText: 'text-violet-600 dark:text-violet-400',
-  },
+const roles = [
+  { value: 'STUDENT' as Role, label: 'Student',  icon: GraduationCap, desc: 'Discover & propose', accent: '#3B9EFF', soft: '#EBF5FF', soft2: '#D6ECFF' },
+  { value: 'FACULTY' as Role, label: 'Faculty',  icon: BookOpen,       desc: 'Review & mentor',   accent: '#4DC96A', soft: '#E8FAE9', soft2: '#D4F5D8' },
+  { value: 'ADMIN'   as Role, label: 'Admin',    icon: Shield,         desc: 'Manage platform',  accent: '#6366F1', soft: '#EDEDFF', soft2: '#E0E0FF' },
 ];
 
 const features = [
-  { icon: <Zap className="h-4 w-4" />, text: 'Real-time event voting' },
-  { icon: <Users className="h-4 w-4" />, text: 'Community collaboration' },
-  { icon: <Calendar className="h-4 w-4" />, text: 'Smart event calendar' },
+  { icon: Star,          text: 'Propose and vote on campus events in real-time' },
+  { icon: Users,         text: 'Multi-role collaboration across the entire campus' },
+  { icon: Calendar,      text: 'Smart calendar with role-based event tracking' },
+  { icon: TrendingUp,    text: 'Live analytics dashboard with engagement data' },
+];
+
+const previewEvents = [
+  { title: 'Tech Symposium 2025',  date: 'Jan 20', tag: 'Technical', color: '#6366F1' },
+  { title: 'Cultural Fest Spring', date: 'Jan 28', tag: 'Cultural',  color: '#EC4899' },
+  { title: 'Hackathon Pro',        date: 'Feb 5',  tag: 'Hackathon', color: '#3B9EFF' },
 ];
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [role, setRole] = useState<Role>('STUDENT');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
-  const [loginRole, setLoginRole] = useState<Role>('STUDENT');
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
-
-  const [signupRole, setSignupRole] = useState<Role>('STUDENT');
-  const [name, setName] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [signupError, setSignupError] = useState('');
-  const [signupSuccess, setSignupSuccess] = useState('');
-  const [signupLoading, setSignupLoading] = useState(false);
-  const [signupDepartment, setSignupDepartment] = useState('');
-  const [signupEmployeeId, setSignupEmployeeId] = useState('');
-  const [showSignupPassword, setShowSignupPassword] = useState(false);
-  const DEPARTMENTS = [
-    'Computer Science and Engineering',
-    'Information Technology',
-    'Electronics and Communication Engineering',
-    'Electrical and Electronics Engineering',
-    'Mechanical Engineering',
-    'Civil Engineering',
-    'Artificial Intelligence and Data Science',
-    'Cyber Security',
-    'MBA',
-    'MCA',
-  ];
-
-  const activeRole = mode === 'login' ? roles.find((r) => r.value === loginRole)! : roles.find((r) => r.value === signupRole)!;
+  const activeRole = roles.find((r) => r.value === role)!;
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setLoginError('');
-    setLoginLoading(true);
+    setError('');
+    setLoading(true);
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: loginEmail, password: loginPassword, role: loginRole }),
+      body: JSON.stringify({ email, password, role }),
     });
-    setLoginLoading(false);
-    if (!res.ok) { setLoginError('Incorrect email or password'); return; }
+    setLoading(false);
+    if (!res.ok) { setError('Incorrect email or password. Please try again.'); return; }
     router.push('/dashboard');
   }
 
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
-    setSignupError('');
-    setSignupSuccess('');
-    if (signupPassword !== confirmPassword) { setSignupError('Passwords do not match'); return; }
-    if (signupPassword.length < 8) { setSignupError('Password must be at least 8 characters'); return; }
-    setSignupLoading(true);
-    const body: Record<string, unknown> = {
-      name, email: signupEmail, password: signupPassword, role: signupRole,
-      department: signupDepartment,
-    };
-    if (signupRole === 'STUDENT') {
-      body.rollNumber = '';
-    }
-    if (signupRole === 'FACULTY') {
-      body.employeeId = signupEmployeeId;
-    }
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    setSignupLoading(false);
-    if (res.status === 409) { setSignupError('An account with this email already exists'); return; }
-    if (!res.ok) { setSignupError('Something went wrong. Please try again.'); return; }
-    setSignupSuccess('Account created! You can now log in.');
-    setName(''); setSignupEmail(''); setSignupPassword(''); setConfirmPassword('');
-    setTimeout(() => setMode('login'), 1500);
-  }
+  return (
+    <div className="min-h-screen flex" style={{ background: '#F8F9FC' }}>
 
-  function switchMode(m: 'login' | 'signup') {
-    setMode(m);
-    setLoginError('');
-    setSignupError('');
-    setSignupSuccess('');
-  }
+      {/* ── LEFT PANEL 42% ── */}
+      <div
+        className="hidden lg:flex w-[42%] flex-col justify-between p-12 relative overflow-hidden"
+        style={{ background: `linear-gradient(145deg, ${activeRole.soft} 0%, #FFFFFF 100%)` }}
+      >
+        {/* Decorative blob */}
+        <div
+          className="absolute -top-24 -right-16 h-64 w-64 rounded-full blur-3xl opacity-40 transition-all duration-700"
+          style={{ background: activeRole.soft2 }}
+        />
+        <div
+          className="absolute -bottom-20 -left-12 h-72 w-72 rounded-full blur-3xl opacity-30 transition-all duration-700"
+          style={{ background: activeRole.soft }}
+        />
 
-  function handleSignupRedirect() {
-    if (signupRole === 'STUDENT') router.push('/signup/student');
-    if (signupRole === 'FACULTY') router.push('/signup/faculty');
-  }
-
-return (
-    <div className="relative flex min-h-screen overflow-hidden bg-slate-950">
-      {/* Animated background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className={`absolute -top-40 -left-40 h-96 w-96 rounded-full bg-gradient-to-br ${activeRole.gradient} opacity-10 blur-3xl transition-all duration-700`} />
-        <div className={`absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-gradient-to-br ${activeRole.gradient} opacity-10 blur-3xl transition-all duration-700`} />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950 to-slate-950" />
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-      </div>
-
-      {/* Left panel — branding */}
-      <div className="relative hidden w-[45%] flex-col justify-between p-12 lg:flex">
-        <div className="flex items-center gap-3">
-          <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${activeRole.gradient} shadow-lg transition-all duration-500`}>
-            <Zap className="h-5 w-5 text-white" />
+        {/* Logo */}
+        <div className="relative flex items-center gap-3">
+          <div
+            className="h-10 w-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+            style={{ background: activeRole.accent, boxShadow: `0 4px 16px ${activeRole.accent}40` }}
+          >
+            <Zap className="h-5 w-5" />
           </div>
-          <span className="text-lg font-semibold text-white">CampusConnect</span>
+          <div>
+            <p className="text-[17px] font-bold text-[#0F172A]">CampusConnect</p>
+            <p className="text-xs text-[#64748B]">Event Management Platform</p>
+          </div>
         </div>
 
-        <div className="space-y-8">
-          <div className="space-y-4">
-            <div className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${activeRole.gradient} bg-opacity-10 px-4 py-1.5 text-xs font-medium text-white/80 ring-1 ring-white/10`}>
-              <span className="relative flex h-2 w-2">
-                <span className={`absolute inline-flex h-full w-full animate-ping rounded-full bg-gradient-to-r ${activeRole.gradient} opacity-75`} />
-                <span className={`relative inline-flex h-2 w-2 rounded-full bg-gradient-to-r ${activeRole.gradient}`} />
-              </span>
-              Platform is live
-            </div>
-            <h1 className="text-4xl font-bold leading-tight text-white">
-              Where campus <br />
-              <span className={`bg-gradient-to-r ${activeRole.gradient} bg-clip-text text-transparent`}>
-                ideas become events
-              </span>
+        {/* Hero */}
+        <div className="relative space-y-8">
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
+            style={{ background: activeRole.soft2, color: activeRole.accent, border: `1px solid ${activeRole.soft2}` }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: activeRole.accent }} />
+            Platform is Live
+          </div>
+
+          <div>
+            <h1 className="text-[40px] font-bold text-[#0F172A] leading-[1.15]">
+              Where campus<br />
+              <span style={{ color: activeRole.accent }}>ideas become events</span>
             </h1>
-            <p className="text-base leading-relaxed text-slate-400">
-              A unified platform for students, faculty, and admins to collaborate on event proposals, voting, funding, and scheduling.
+            <p className="mt-4 text-[15px] text-[#64748B] leading-relaxed">
+              A unified platform for students, faculty, and admins to collaborate on event proposals, voting, and scheduling.
             </p>
           </div>
 
-          <div className="space-y-3">
+          {/* Feature list */}
+          <div className="space-y-2.5">
             {features.map((f, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-3 backdrop-blur-sm">
-                <div className={`flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br ${activeRole.gradient} text-white`}>
-                  {f.icon}
+              <div
+                key={i}
+                className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3"
+                style={{ border: '1px solid #E9ECF5', boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}
+              >
+                <div
+                  className="h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: activeRole.soft }}
+                >
+                  <f.icon className="h-4 w-4" style={{ color: activeRole.accent }} />
                 </div>
-                <span className="text-sm text-slate-300">{f.text}</span>
+                <span className="text-sm text-[#475569] font-medium">{f.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Event preview card */}
+          <div
+            className="rounded-2xl overflow-hidden bg-white"
+            style={{ border: '1px solid #E9ECF5', boxShadow: '0 4px 16px rgba(15,23,42,0.06)' }}
+          >
+            <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #F1F5F9' }}>
+              <Calendar className="h-4 w-4" style={{ color: activeRole.accent }} />
+              <span className="text-sm font-semibold text-[#0F172A]">Upcoming Events</span>
+              <span
+                className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: activeRole.soft, color: activeRole.accent }}
+              >LIVE</span>
+            </div>
+            {previewEvents.map((ev, i) => (
+              <div
+                key={i}
+                className="px-4 py-3 flex items-center justify-between"
+                style={{ borderBottom: i < 2 ? '1px solid #F8FAFC' : 'none' }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${ev.color}12` }}
+                  >
+                    <Star className="h-3.5 w-3.5" style={{ color: ev.color }} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-[#0F172A]">{ev.title}</p>
+                    <p className="text-[10px] text-[#94A3B8]">{ev.date}</p>
+                  </div>
+                </div>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: `${ev.color}12`, color: ev.color }}
+                >
+                  {ev.tag}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-xs text-slate-600">© 2025 CampusConnect. Built for modern campuses.</p>
+        <p className="relative text-xs text-[#94A3B8]">© 2025 CampusConnect · Built for modern campuses</p>
       </div>
 
-      {/* Right panel — form */}
-      <div className="relative flex flex-1 items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md animate-fade-in">
-          {/* Logo on mobile */}
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br ${activeRole.gradient}`}>
-              <Zap className="h-4 w-4 text-white" />
+      {/* ── RIGHT PANEL 58% ── */}
+      <div className="flex flex-1 items-center justify-center p-6 lg:p-14">
+        <div className="w-full max-w-[420px] animate-fade-up">
+
+          {/* Mobile logo */}
+          <div className="flex items-center gap-3 mb-8 lg:hidden">
+            <div
+              className="h-9 w-9 rounded-xl flex items-center justify-center text-white"
+              style={{ background: activeRole.accent }}
+            >
+              <Zap className="h-4 w-4" />
             </div>
-            <span className="text-base font-semibold text-white">CampusConnect</span>
+            <span className="text-[17px] font-bold text-[#0F172A]">CampusConnect</span>
           </div>
 
           {/* Card */}
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-2xl backdrop-blur-xl">
-            <div className="p-7">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-white">Welcome back</h2>
-                <p className="mt-1 text-sm text-slate-400">Sign in to your account to continue</p>
-              </div>
+          <div className="login-glass-card p-8">
+            <div className="mb-6">
+              <h2 className="text-[22px] font-bold text-[#0F172A]">Welcome back</h2>
+              <p className="text-sm text-[#64748B] mt-1">Sign in to your account to continue</p>
+            </div>
 
-              {/* Role selector */}
-              <div className="mb-6">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Select your role</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {roles.map((r) => {
-                    const isActive = loginRole === r.value;
-                    return (
-                      <button
-                        key={r.value}
-                        type="button"
-                        onClick={() => setLoginRole(r.value)}
-                        className={`group relative flex flex-col items-center gap-2 rounded-xl border p-3 transition-all duration-200 ${
-                          isActive
-                            ? `border-opacity-80 bg-gradient-to-b ${r.activeGradient} ${r.activeBorder}`
-                            : 'border-white/8 bg-white/3 hover:border-white/15 hover:bg-white/6'
-                        }`}
+            {/* Role selector */}
+            <div className="mb-6">
+              <label className="saas-label">Select your role</label>
+              <div className="grid grid-cols-3 gap-2.5">
+                {roles.map((r) => {
+                  const isActive = role === r.value;
+                  const RoleIcon = r.icon;
+                  return (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => setRole(r.value)}
+                      className="flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-150"
+                      style={{
+                        background: isActive ? r.soft : '#F8FAFC',
+                        border: `1.5px solid ${isActive ? r.soft2 : '#E9ECF5'}`,
+                        boxShadow: isActive ? `0 2px 12px ${r.accent}20` : 'none',
+                      }}
+                    >
+                      <div
+                        className="h-9 w-9 rounded-xl flex items-center justify-center"
+                        style={{ background: isActive ? r.accent : '#F1F5F9' }}
                       >
-                        <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
-                          isActive
-                            ? `bg-gradient-to-br ${r.gradient} text-white shadow-lg`
-                            : 'bg-white/8 text-slate-400 group-hover:text-slate-200'
-                        }`}>
-                          {r.icon}
-                        </div>
-                        <div className="text-center">
-                          <p className={`text-xs font-semibold ${isActive ? r.activeText : 'text-slate-400'}`}>{r.label}</p>
-                          <p className="mt-0.5 text-[10px] leading-tight text-slate-500">{r.description}</p>
-                        </div>
-                        {isActive && (
-                          <div className={`absolute inset-0 rounded-xl ring-1 ${r.activeBorder} ring-inset opacity-50`} />
-                        )}
-                      </button>
-                    );
-                  })}
+                        <RoleIcon className="h-4 w-4" style={{ color: isActive ? '#FFFFFF' : '#94A3B8' }} />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs font-bold" style={{ color: isActive ? r.accent : '#64748B' }}>{r.label}</p>
+                        <p className="text-[10px] mt-0.5 text-[#94A3B8]">{r.desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="saas-label">Email address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@university.edu"
+                  required
+                  className="login-input"
+                />
+              </div>
+
+              <div>
+                <label className="saas-label">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="login-input"
+                    style={{ paddingRight: '48px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]"
+                  >
+                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-400">Email address</label>
-                  <input
-                    type="email"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="you@university.edu"
-                    required
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all focus:border-white/25 focus:bg-white/8 focus:ring-2 focus:ring-white/5"
-                  />
+              {error && (
+                <div className="flex items-center gap-2.5 rounded-xl bg-red-50 border border-red-100 px-4 py-3">
+                  <div className="h-2 w-2 rounded-full bg-red-400 flex-shrink-0" />
+                  <p className="text-sm text-red-600">{error}</p>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-400">Password</label>
-                  <div className="relative">
-                    <input
-                      type={showLoginPassword ? 'text' : 'password'}
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-11 text-sm text-white placeholder-slate-500 outline-none transition-all focus:border-white/25 focus:bg-white/8 focus:ring-2 focus:ring-white/5"
-                    />
-                    <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
-                      {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-                {loginError && (
-                  <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-red-400" />
-                    <p className="text-xs text-red-400">{loginError}</p>
-                  </div>
-                )}
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl text-white font-semibold text-[15px] h-[48px] mt-1 transition-all hover:scale-[1.01] disabled:opacity-60"
+                style={{
+                  background: activeRole.accent,
+                  boxShadow: `0 4px 20px ${activeRole.accent}40`,
+                }}
+              >
+                {loading
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in...</>
+                  : <>Sign In <ArrowRight className="h-4 w-4" /></>
+                }
+              </button>
+            </form>
+
+            <div className="mt-6 pt-5 border-t border-[#F1F5F9] space-y-2">
+              <p className="text-center text-sm text-[#64748B]">
+                Don&apos;t have an account?{' '}
                 <button
-                  type="submit"
-                  disabled={loginLoading}
-                  className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r ${activeRole.gradient} px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-90 hover:shadow-xl active:scale-[0.98] disabled:opacity-60`}
+                  type="button"
+                  onClick={() => router.push('/auth?mode=signup')}
+                  className="font-semibold hover:underline"
+                  style={{ color: activeRole.accent }}
                 >
-                  {loginLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in...</> : 'Sign In'}
+                  Create one
                 </button>
-              </form>
+              </p>
+              <p className="text-center text-xs text-[#94A3B8]">
+                By signing in, you agree to our Terms of Service.
+              </p>
             </div>
           </div>
-
-          <p className="mt-4 text-center text-sm text-slate-600">
-            Don&apos;t have an account?{' '}
-            <button type="button" onClick={() => router.push('/auth?mode=signup')} className="font-medium text-blue-600 hover:underline">
-              Create one
-            </button>
-          </p>
-          <p className="mt-6 text-center text-xs text-slate-600">
-            By continuing, you agree to our Terms of Service and Privacy Policy.
-          </p>
         </div>
       </div>
     </div>

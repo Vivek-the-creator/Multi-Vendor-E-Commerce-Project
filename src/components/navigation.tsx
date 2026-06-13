@@ -3,166 +3,159 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, FileText, Calendar, BarChart3, LogOut, Sun, Moon,
-  Zap, ChevronRight, Bell, Settings, Users, Shield, GraduationCap, BookOpen,
-  ThumbsUp, Star, Plus, User, Clock, CalendarDays,
+  LayoutDashboard, FileText, LogOut, Zap,
+  Users, Shield, GraduationCap, BookOpen, Star, User,
+  CalendarDays, Clock, ChevronRight, Settings, Calendar,
+  Bell, Ticket, BarChart3,
 } from 'lucide-react';
 import { useSession, signOut } from '@/lib/auth-client';
-import { useTheme } from '@/components/providers';
 import { cn } from '@/lib/utils';
 
 const navByRole = {
   STUDENT: [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/proposals', label: 'Proposals', icon: FileText },
-    { href: '/upcoming-events', label: 'Upcoming Events', icon: CalendarDays },
-    { href: '/calendar', label: 'Calendar', icon: Calendar },
-    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/profile', label: 'Profile', icon: User },
+    { href: '/dashboard',       label: 'Dashboard',    icon: LayoutDashboard },
+    { href: '/upcoming-events', label: 'Events',       icon: CalendarDays },
+    { href: '/proposals',       label: 'My Proposals', icon: FileText },
+    { href: '/calendar',        label: 'Calendar',     icon: Calendar },
     { href: '/engagement/analytics/student', label: 'My Stats', icon: Star },
+    { href: '/profile',         label: 'Profile',      icon: User },
   ],
   FACULTY: [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/proposals', label: 'Proposals', icon: FileText },
-    { href: '/upcoming-events', label: 'Upcoming Events', icon: CalendarDays },
+    { href: '/dashboard',       label: 'Dashboard',    icon: LayoutDashboard },
+    { href: '/proposals',       label: 'Proposals',    icon: FileText },
+    { href: '/upcoming-events', label: 'Events',       icon: CalendarDays },
     { href: '/faculty/pending-events', label: 'Review Events', icon: Clock },
-    { href: '/calendar', label: 'Calendar', icon: Calendar },
-    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/profile', label: 'Profile', icon: User },
+    { href: '/calendar',        label: 'Calendar',     icon: Calendar },
     { href: '/engagement/analytics/faculty', label: 'My Stats', icon: Star },
+    { href: '/profile',         label: 'Profile',      icon: User },
   ],
   ADMIN: [
-    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/proposals', label: 'Proposals', icon: FileText },
-    { href: '/upcoming-events', label: 'Upcoming Events', icon: CalendarDays },
-    { href: '/admin/pending-events', label: 'Pending Events', icon: Clock },
-    { href: '/calendar', label: 'Calendar', icon: Calendar },
-    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/admin/users', label: 'Users', icon: Users },
-    { href: '/profile', label: 'Profile', icon: User },
+    { href: '/admin',                    label: 'Dashboard',       icon: LayoutDashboard },
+    { href: '/admin/pending-events',     label: 'Pending Events',  icon: Clock },
+    { href: '/admin/upcoming-events',    label: 'Upcoming Events', icon: CalendarDays },
+    { href: '/admin/completed-events',   label: 'Completed Events',icon: Star },
+    { href: '/admin/analytics',          label: 'Analytics',       icon: BarChart3 },
+    { href: '/admin/users',             label: 'Users',           icon: Users },
+    { href: '/profile',                 label: 'Profile',         icon: User },
   ],
 };
 
 const roleConfig = {
-  STUDENT: {
-    gradient: 'from-blue-500 to-cyan-500',
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-400',
-    border: 'border-blue-500/20',
-    activeGlow: 'shadow-blue-500/20',
-    activeBg: 'bg-blue-500/15',
-    activeBorder: 'border-l-blue-500',
-    icon: GraduationCap,
-    label: 'Student',
-  },
-  FACULTY: {
-    gradient: 'from-emerald-500 to-teal-500',
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-400',
-    border: 'border-emerald-500/20',
-    activeGlow: 'shadow-emerald-500/20',
-    activeBg: 'bg-emerald-500/15',
-    activeBorder: 'border-l-emerald-500',
-    icon: BookOpen,
-    label: 'Faculty',
-  },
-  ADMIN: {
-    gradient: 'from-violet-500 to-indigo-500',
-    bg: 'bg-violet-500/10',
-    text: 'text-violet-400',
-    border: 'border-violet-500/20',
-    activeGlow: 'shadow-violet-500/20',
-    activeBg: 'bg-violet-500/15',
-    activeBorder: 'border-l-violet-500',
-    icon: Shield,
-    label: 'Admin',
-  },
+  STUDENT: { label: 'Student', icon: GraduationCap, accent: '#3B9EFF' },
+  FACULTY: { label: 'Faculty', icon: BookOpen,      accent: '#4DC96A' },
+  ADMIN:   { label: 'Admin',   icon: Shield,        accent: '#6366F1' },
 };
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router   = useRouter();
   const { data: session } = useSession();
-  const { theme, toggle } = useTheme();
 
-  const role = (session?.user?.role as keyof typeof roleConfig) ?? 'STUDENT';
+  const role   = (session?.user?.role as keyof typeof roleConfig) ?? 'ADMIN';
   const config = roleConfig[role];
   const RoleIcon = config.icon;
-  const navItems = navByRole[role] ?? navByRole.STUDENT;
+  const navItems = navByRole[role] ?? navByRole.ADMIN;
 
   async function handleLogout() {
     await signOut();
     router.push('/login');
   }
 
-  const sidebarClass =
-    role === 'FACULTY' ? 'sidebar-faculty' :
-    role === 'ADMIN'   ? 'sidebar-admin'   :
-                         'sidebar-student';
-
   return (
-    <aside className={`fixed left-0 top-0 z-30 flex h-screen w-64 flex-col backdrop-blur-xl ${sidebarClass}`}>
-      {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-white/5 px-5">
-        <div className={`flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br ${config.gradient} shadow-lg`}>
+    <aside className="app-sidebar" data-role={role}>
+
+      {/* ── Logo area ── */}
+      <div className="sidebar-logo-area">
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0"
+          style={{
+            background: `linear-gradient(135deg, ${config.accent}, ${config.accent}99)`,
+            boxShadow: `0 4px 12px ${config.accent}40`,
+          }}
+        >
           <Zap className="h-4 w-4 text-white" />
         </div>
-        <span className="text-base font-semibold text-white">CampusConnect</span>
+        <div>
+          <p className="text-[15px] font-bold leading-none" style={{ color: 'var(--text-heading)' }}>
+            CampusConnect
+          </p>
+          <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            Event Platform
+          </p>
+        </div>
       </div>
 
-      {/* User info */}
+      {/* ── User profile card ── */}
       {session?.user && (
-        <div className={`mx-3 mt-4 rounded-xl border ${config.border} ${config.bg} p-3`}>
-          <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${config.gradient} text-white shadow`}>
+        <div
+          className="mx-4 mt-5 mb-4 rounded-2xl p-3"
+          style={{ background: 'var(--role-soft)', border: '1px solid var(--role-soft2)' }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div
+              className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
+              style={{ background: config.accent }}
+            >
               <RoleIcon className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">{session.user.name}</p>
-              <p className={`text-xs ${config.text}`}>{config.label}</p>
+              <p className="text-[13px] font-semibold truncate" style={{ color: 'var(--text-heading)' }}>
+                {session.user.name}
+              </p>
+              <p className="text-[11px] font-medium" style={{ color: config.accent }}>
+                {config.label}
+              </p>
             </div>
+            <Bell className="h-4 w-4 flex-shrink-0 cursor-pointer" style={{ color: 'var(--text-muted)' }} />
           </div>
         </div>
       )}
 
-      {/* Nav */}
-      <nav className="mt-4 flex-1 space-y-0.5 px-3">
+      {/* ── Section label ── */}
+      <div className="px-5 mb-1.5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: 'var(--text-muted)' }}>
+          Navigation
+        </p>
+      </div>
+
+      {/* ── Nav items ── */}
+      <nav className="flex-1 overflow-y-auto px-3 space-y-0.5">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/dashboard' && item.href !== '/admin' && pathname.startsWith(item.href));
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={cn(
-                'group flex items-center gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                isActive
-                  ? `border-l-2 ${config.activeBorder} ${config.activeBg} ${config.text}`
-                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
-              )}
+              className={cn('sidebar-nav-item', isActive && 'active')}
             >
-              <Icon className={cn('h-4 w-4 flex-shrink-0 transition-transform group-hover:scale-110', isActive && config.text)} />
-              {item.label}
-              {isActive && <ChevronRight className={`ml-auto h-3 w-3 ${config.text}`} />}
+              <Icon className="nav-icon" />
+              <span className="flex-1 truncate">{item.label}</span>
+              {isActive && (
+                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" style={{ color: config.accent }} />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Bottom actions */}
-      <div className="border-t border-white/5 p-3 space-y-0.5">
-        <button
-          onClick={toggle}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-all hover:bg-white/5 hover:text-slate-200"
-        >
-          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-        </button>
+      {/* ── Bottom actions ── */}
+      <div
+        className="px-3 py-4 space-y-0.5"
+        style={{ borderTop: '1px solid var(--sidebar-border)' }}
+      >
+        <Link href="/profile" className="sidebar-nav-item">
+          <Settings className="nav-icon" />
+          Settings
+        </Link>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-all hover:bg-red-500/10 hover:text-red-400"
+          className="sidebar-nav-item w-full text-left hover:!bg-red-50 hover:!text-red-600"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="nav-icon" />
           Sign out
         </button>
       </div>
@@ -170,6 +163,4 @@ export function Sidebar() {
   );
 }
 
-export function Navigation() {
-  return null; // replaced by Sidebar
-}
+export function Navigation() { return null; }

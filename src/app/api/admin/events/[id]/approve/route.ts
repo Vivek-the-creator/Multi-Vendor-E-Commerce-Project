@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/engagement/notification.service';
+import { PointsService } from '@/lib/engagement/points.service';
 
 export async function PATCH(
   request: Request,
@@ -50,12 +51,24 @@ export async function PATCH(
       });
     }
 
+    // Award 25 points to proposer for full approval (faculty + admin)
+    await PointsService.awardAcceptancePoints(event.authorId);
+    await prisma.user.update({ where: { id: event.authorId }, data: { points: { increment: 25 } } });
+
     await NotificationService.send(
       event.authorId,
-      'Event Approved by Admin',
-      `Your event "${event.title}" has been approved by admin.`,
+      'Admin Approved Your Proposal',
+      `Admin approved "${event.title}" — it's now live! You earned 25 points!`,
       event.id
     );
+    if (event.mentorFacultyId) {
+      await NotificationService.send(
+        event.mentorFacultyId,
+        'Faculty Mentor Request Received',
+        `The event "${event.title}" you mentored has been approved by admin.`,
+        event.id
+      );
+    }
 
     return NextResponse.json({ event: updated, message: 'Event approved' });
   }
@@ -74,8 +87,8 @@ export async function PATCH(
 
     await NotificationService.send(
       event.authorId,
-      'Event Rejected',
-      `Your event "${event.title}" was rejected. Reason: ${rejectionReason || 'No reason provided'}`,
+      'Admin Rejected Your Proposal',
+      `Admin rejected "${event.title}". Sorry, will catch up in other events.`,
       event.id
     );
 

@@ -17,6 +17,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       _count: { select: { votes: true, registrations: true } },
       votes: { where: { userId }, select: { id: true } },
       registrations: { where: { userId }, select: { id: true } },
+      volunteerApplications: { where: { studentId: userId }, select: { id: true } },
       comments: {
         orderBy: { createdAt: 'desc' },
         include: { user: { select: { name: true, role: true } } },
@@ -51,6 +52,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       isRegistered: event.registrations.length > 0,
       createdAt: event.createdAt.toISOString(),
     },
+    hasAppliedVolunteer: event.volunteerApplications.length > 0,
     comments: event.comments.map((c) => ({
       id: c.id,
       content: c.content,
